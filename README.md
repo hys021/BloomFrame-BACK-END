@@ -4,12 +4,13 @@
 
 - **DB:** Firebase Firestore + FCM (Spark)
 - **파일:** Cloudflare R2 (약 사진)
-- **레포:** https://github.com/hys021/BloomFrame-BACK-END
+- **프로젝트 ID:** `bloomframe-cbed6`
 
 ## Quick start (Firebase 없이 — noop)
 
 ```powershell
-cd server
+git clone https://github.com/hys021/BloomFrame-BACK-END.git
+cd BloomFrame-BACK-END\server
 .\gradlew.bat bootRun
 ```
 
@@ -20,13 +21,12 @@ curl http://localhost:8080/api/v1/firebase/health
 
 ## Firebase + R2 연결
 
-1. `server/src/main/resources/application-local.yml.example` → `application-local.yml` 복사
-2. Discord에서 받은 `firebase-service-account.json` → `server/config/`
+1. `src/main/resources/application-local.yml.example` → `application-local.yml` 복사
+2. Discord에서 받은 `firebase-service-account.json` → `config/`
 3. `application-local.yml`에 R2 키 입력
 4. 실행:
 
 ```powershell
-cd server
 .\gradlew.bat bootRun --args="--spring.profiles.active=local"
 ```
 
@@ -53,21 +53,28 @@ curl http://localhost:8080/api/v1/firebase/health
 | PATCH | `/api/v1/users/{uid}/reminders/{id}` |
 | POST | `/api/v1/users/{uid}/devices` |
 
-상세: [docs/openapi-stub.md](docs/openapi-stub.md)
+## 역할 분담
 
-## 팀 문서
+| | Java #1 | Java #2 |
+|---|---------|---------|
+| **패키지** | `com.bloomframe.server.account.*` | `com.bloomframe.server.sync.*` |
+| **담당** | JWT, 페어링, CRUD, 스케줄 | auth-touch, 꽃 상태, FCM, sync |
 
-| 문서 | 내용 |
-|------|------|
-| [docs/TEAM.md](docs/TEAM.md) | 온보딩 |
-| [docs/architecture.md](docs/architecture.md) | Java #1 / #2 경계 |
-| [docs/firebase-design.md](docs/firebase-design.md) | Firestore 스키마 |
-| [docs/HANDOFF-java1.md](docs/HANDOFF-java1.md) | JWT, CRUD, 페어링 |
-| [docs/HANDOFF-java2.md](docs/HANDOFF-java2.md) | 인증, FCM, sync |
+공통 Firebase: `com.bloomframe.server.firebase.*`
 
-## Firestore Rules deploy
+프론트(Android/PC)는 별도 레포 — REST API만 연동.
 
-```bash
-cd firebase
-firebase deploy --only firestore:rules
+## Firestore Rules
+
+Firebase Console → Firestore → Rules에서 **클라이언트 직접 접근 차단** (서버 Admin SDK만 사용):
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
 ```
