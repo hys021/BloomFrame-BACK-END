@@ -1,10 +1,13 @@
-# Copy to application-local.yml (gitignored) and fill in values.
-#
-# Spark plan: Firestore + FCM via Firebase, files via R2 (no Blaze / Firebase Storage needed).
+server:
+  port: 8080
 
+spring:
+  application:
+    name: bloomframe-server
+
+# Spark: Firestore + FCM via Firebase, files via R2 (no Blaze / Firebase Storage)
 firebase:
   credentials-path: ./config/firebase-service-account.json
-  # storage-bucket: omit when using R2 below
 
 r2:
   account-id: YOUR_CLOUDFLARE_ACCOUNT_ID

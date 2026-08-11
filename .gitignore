@@ -2,10 +2,6 @@
 **/firebase-service-account.json
 **/config/firebase-service-account.json
 
-# 로컬 환경설정 (시크릿 포함)
-application-local.yml
-**/application-local.yml
-
 # Gradle
 .gradle/
 build/
