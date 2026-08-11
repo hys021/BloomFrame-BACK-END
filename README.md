@@ -13,9 +13,9 @@ cd BloomFrame-BACK-END\server
 .\gradlew.bat bootRun
 ```
 
-## 설정 (`application-local.yml`)
+## 설정
 
-1. `src/main/resources/application-local.yml` — Firebase JSON 경로 + R2 키
+1. `application-local.yml.example` → `application-local.yml` 복사 후 R2 키 입력 (**local.yml은 git 금지**)
 2. `config/firebase-service-account.json` — Discord에서 수령 (**git 금지**)
 
 ```powershell

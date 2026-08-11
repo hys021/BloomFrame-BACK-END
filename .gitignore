@@ -2,6 +2,10 @@
 **/firebase-service-account.json
 **/config/firebase-service-account.json
 
+# 로컬 환경설정 (R2 secret 등 — git 금지)
+application-local.yml
+**/application-local.yml
+
 # Gradle
 .gradle/
 build/
