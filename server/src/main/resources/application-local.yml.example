@@ -1,0 +1,13 @@
+# Copy to application-local.yml (gitignored) and fill in values.
+#
+# Spark plan: Firestore + FCM via Firebase, files via R2 (no Blaze / Firebase Storage needed).
+
+firebase:
+  credentials-path: ./config/firebase-service-account.json
+  # storage-bucket: omit when using R2 below
+
+r2:
+  account-id: YOUR_CLOUDFLARE_ACCOUNT_ID
+  access-key-id: YOUR_R2_ACCESS_KEY_ID
+  secret-access-key: YOUR_R2_SECRET_ACCESS_KEY
+  bucket: remote-link-assets

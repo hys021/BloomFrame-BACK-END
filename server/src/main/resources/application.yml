@@ -1,0 +1,17 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: bloomframe-server
+
+firebase:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+  storage-bucket: ${FIREBASE_STORAGE_BUCKET:}
+
+# Cloudflare R2 (S3-compatible). When configured, medicine photos use R2 instead of Firebase Storage.
+r2:
+  account-id: ${R2_ACCOUNT_ID:}
+  access-key-id: ${R2_ACCESS_KEY_ID:}
+  secret-access-key: ${R2_SECRET_ACCESS_KEY:}
+  bucket: ${R2_BUCKET:}
