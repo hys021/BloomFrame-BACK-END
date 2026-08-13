@@ -20,6 +20,10 @@ public enum ErrorCode {
     DEVICE_STILL_CONNECTED(HttpStatus.CONFLICT, "연결된 기기는 삭제할 수 없습니다. 먼저 연결을 해제해주세요."),
     DEVICE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 기기가 아닙니다."),
 
+    // Medication
+    MEDICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "복약 정보를 찾을 수 없습니다."),
+    MEDICATION_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 복약 정보가 아닙니다."),
+
     // Firestore / Infra
     FIRESTORE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터 처리 중 오류가 발생했습니다.");
 
