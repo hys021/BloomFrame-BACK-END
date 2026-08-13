@@ -1,0 +1,91 @@
+package com.bloomframe.server.alarm.repository;
+
+import com.bloomframe.server.alarm.model.ExerciseAlarm;
+import com.bloomframe.server.common.exception.BusinessException;
+import com.bloomframe.server.common.exception.ErrorCode;
+import com.google.cloud.firestore.*;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+
+@Repository
+public class ExerciseAlarmRepository {
+
+    private static final String COLLECTION = "exerciseAlarms";
+
+    private final Firestore firestore;
+
+    public ExerciseAlarmRepository(Firestore firestore) {
+        this.firestore = firestore;
+    }
+
+    private CollectionReference collection() {
+        return firestore.collection(COLLECTION);
+    }
+
+    public ExerciseAlarm save(ExerciseAlarm alarm) {
+        try {
+            DocumentReference ref = collection().document();
+            ref.set(alarm).get();
+            alarm.setId(ref.getId());
+            return alarm;
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.FIRESTORE_ERROR);
+        }
+    }
+
+    public List<ExerciseAlarm> findAllByUserIdOrderByAlarmTime(String userId) {
+        try {
+            QuerySnapshot snapshot = collection()
+                    .whereEqualTo("userId", userId)
+                    .orderBy("alarmTime", Query.Direction.ASCENDING)
+                    .get().get();
+            return snapshot.getDocuments().stream().map(this::toAlarm).toList();
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.FIRESTORE_ERROR);
+        }
+    }
+
+    public Optional<ExerciseAlarm> findById(String alarmId) {
+        try {
+            DocumentSnapshot doc = collection().document(alarmId).get().get();
+            if (!doc.exists()) {
+                return Optional.empty();
+            }
+            return Optional.of(toAlarm(doc));
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.FIRESTORE_ERROR);
+        }
+    }
+
+    public void update(String alarmId, ExerciseAlarm alarm) {
+        try {
+            collection().document(alarmId).set(alarm, SetOptions.merge()).get();
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.FIRESTORE_ERROR);
+        }
+    }
+
+    public void deleteById(String alarmId) {
+        try {
+            collection().document(alarmId).delete().get();
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.FIRESTORE_ERROR);
+        }
+    }
+
+    private ExerciseAlarm toAlarm(DocumentSnapshot doc) {
+        ExerciseAlarm alarm = doc.toObject(ExerciseAlarm.class);
+        if (alarm != null) {
+            alarm.setId(doc.getId());
+        }
+        return alarm;
+    }
+}
