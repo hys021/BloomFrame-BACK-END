@@ -1,4 +1,4 @@
-package com.bloomframe.server.verification;
+package com.bloomframe.server.verification.model;
 
 /**
  * 인증이 몇 차 알림 단계에서 일어났는지 나타내는 메타데이터.

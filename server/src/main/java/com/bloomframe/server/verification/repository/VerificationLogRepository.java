@@ -1,4 +1,6 @@
-package com.bloomframe.server.verification;
+package com.bloomframe.server.verification.repository;
+
+import com.bloomframe.server.verification.model.VerificationLog;
 
 import java.time.Instant;
 import java.util.List;

@@ -1,4 +1,6 @@
-package com.bloomframe.server.verification;
+package com.bloomframe.server.verification.repository;
+
+import com.bloomframe.server.verification.model.ReminderSnapshot;
 
 import java.util.Optional;
 

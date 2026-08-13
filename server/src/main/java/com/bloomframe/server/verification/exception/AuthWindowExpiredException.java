@@ -1,4 +1,4 @@
-package com.bloomframe.server.verification;
+package com.bloomframe.server.verification.exception;
 
 import java.time.Instant;
 

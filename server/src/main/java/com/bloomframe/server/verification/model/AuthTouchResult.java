@@ -1,4 +1,4 @@
-package com.bloomframe.server.verification;
+package com.bloomframe.server.verification.model;
 
 /**
  * POST /api/v1/auth-touch 응답 바디로 그대로 나가는 결과 객체.

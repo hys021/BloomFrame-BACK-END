@@ -1,5 +1,10 @@
-package com.bloomframe.server.verification;
+package com.bloomframe.server.verification.service;
 
+import com.bloomframe.server.verification.exception.AuthWindowExpiredException;
+import com.bloomframe.server.verification.exception.ReminderNotFoundException;
+import com.bloomframe.server.verification.model.*;
+import com.bloomframe.server.verification.repository.ReminderReader;
+import com.bloomframe.server.verification.repository.VerificationLogRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;

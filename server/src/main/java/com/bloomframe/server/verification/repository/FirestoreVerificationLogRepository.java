@@ -1,6 +1,10 @@
-package com.bloomframe.server.verification;
+package com.bloomframe.server.verification.repository;
 
 import com.bloomframe.server.firebase.FirestoreHolder;
+import com.bloomframe.server.verification.model.AlertStage;
+import com.bloomframe.server.verification.model.ReminderType;
+import com.bloomframe.server.verification.model.VerificationLog;
+import com.bloomframe.server.verification.model.VerificationStatus;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;

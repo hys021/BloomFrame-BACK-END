@@ -1,4 +1,4 @@
-package com.bloomframe.server.verification;
+package com.bloomframe.server.verification.model;
 
 /**
  * 알림 카테고리. Java #1의 reminders 문서에도 동일한 값이 존재한다고 가정한다.
