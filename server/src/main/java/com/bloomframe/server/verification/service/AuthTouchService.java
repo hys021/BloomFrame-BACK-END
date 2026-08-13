@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * 터치 인증 처리 핵심 로직.
@@ -52,5 +53,9 @@ public class AuthTouchService {
         String logId = logRepository.save(uid, log);
 
         return new AuthTouchResult(logId, reminder.type(), alertStage, VerificationStatus.SUCCESS);
+    }
+
+    public List<VerificationLog> getLogs(String uid, Instant from, Instant to) {
+        return logRepository.findByScheduledAtRange(uid, from, to);
     }
 }
