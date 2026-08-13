@@ -8,7 +8,12 @@ import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import org.springframework.stereotype.Repository;
+import com.google.cloud.firestore.CollectionReference;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -46,6 +51,29 @@ public class FirestoreReminderReader implements ReminderReader {
             throw new IllegalStateException("Firestore read interrupted", e);
         } catch (ExecutionException e) {
             throw new IllegalStateException("Failed to read reminder " + reminderId, e.getCause());
+        }
+    }
+
+    @Override
+    public List<ReminderSnapshot> findAllForUser(String uid) {
+        if (!holder.enabled()) {
+            throw new IllegalStateException("Firestore is disabled — check application-local.yml firebase.credentials-path");
+        }
+        Firestore firestore = holder.firestore();
+        CollectionReference collection = firestore.collection("users").document(uid).collection("reminders");
+
+        try {
+            QuerySnapshot snapshot = collection.get().get();
+            List<ReminderSnapshot> result = new ArrayList<>();
+            for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+                result.add(parse(doc));
+            }
+            return result;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Firestore read interrupted", e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Failed to list reminders for uid " + uid, e.getCause());
         }
     }
 

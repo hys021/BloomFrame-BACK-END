@@ -8,7 +8,6 @@ import com.bloomframe.server.verification.repository.VerificationLogRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -20,9 +19,6 @@ import java.util.List;
  */
 @Service
 public class AuthTouchService {
-
-    private static final Duration FIRST_STAGE_WINDOW = Duration.ofMinutes(3);
-    private static final Duration FINAL_WINDOW = Duration.ofMinutes(10);
 
     private final ReminderReader reminderReader;
     private final VerificationLogRepository logRepository;
@@ -40,8 +36,8 @@ public class AuthTouchService {
 
         Instant now = clock.instant();
         Instant scheduledAt = reminder.scheduledAt();
-        Instant firstDeadline = scheduledAt.plus(FIRST_STAGE_WINDOW);
-        Instant finalDeadline = scheduledAt.plus(FINAL_WINDOW);
+        Instant firstDeadline = scheduledAt.plus(VerificationWindows.FIRST_STAGE_WINDOW);
+        Instant finalDeadline = scheduledAt.plus(VerificationWindows.FINAL_WINDOW);
 
         if (now.isAfter(finalDeadline)) {
             throw new AuthWindowExpiredException(reminderId, scheduledAt);

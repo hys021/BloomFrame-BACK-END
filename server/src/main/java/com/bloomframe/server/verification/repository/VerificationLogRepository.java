@@ -12,4 +12,8 @@ public interface VerificationLogRepository {
 
     /** 홈탭 캘린더 조회용 — scheduledAt 기준 [from, to] 범위. */
     List<VerificationLog> findByScheduledAtRange(String uid, Instant from, Instant to);
+
+    /** 특정 reminder 발생(targetId + scheduledAt)에 대해 이미 로그(성공/실패 무관)가 있는지 확인.
+     *  스케줄러의 중복 MISSED 생성을 막기 위해 사용. */
+    boolean existsForReminderOccurrence(String uid, String targetId, Instant scheduledAt);
 }

@@ -2,6 +2,7 @@ package com.bloomframe.server.verification.repository;
 
 import com.bloomframe.server.verification.model.ReminderSnapshot;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -10,4 +11,7 @@ import java.util.Optional;
  */
 public interface ReminderReader {
     Optional<ReminderSnapshot> findById(String uid, String reminderId);
+
+    /** 미인증 감지 스케줄러용 — 한 유저의 모든 reminder를 가져온다. */
+    List<ReminderSnapshot> findAllForUser(String uid);
 }
