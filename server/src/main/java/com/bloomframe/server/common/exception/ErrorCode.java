@@ -32,6 +32,10 @@ public enum ErrorCode {
     CUSTOM_ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, "기타 알림을 찾을 수 없습니다."),
     CUSTOM_ALARM_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 기타 알림이 아닙니다."),
 
+    // Health Condition
+    HEALTH_CONDITION_NOT_FOUND(HttpStatus.NOT_FOUND, "건강 정보를 찾을 수 없습니다."),
+    HEALTH_CONDITION_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 건강 정보가 아닙니다."),
+
     // Firestore / Infra
     FIRESTORE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터 처리 중 오류가 발생했습니다.");
 
