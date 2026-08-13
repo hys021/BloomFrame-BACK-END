@@ -14,6 +14,12 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
 
+    // Device
+    DEVICE_NOT_FOUND(HttpStatus.NOT_FOUND, "기기를 찾을 수 없습니다."),
+    DEVICE_UUID_DUPLICATE(HttpStatus.CONFLICT, "이미 등록된 기기입니다."),
+    DEVICE_STILL_CONNECTED(HttpStatus.CONFLICT, "연결된 기기는 삭제할 수 없습니다. 먼저 연결을 해제해주세요."),
+    DEVICE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 기기가 아닙니다."),
+
     // Firestore / Infra
     FIRESTORE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터 처리 중 오류가 발생했습니다.");
 
