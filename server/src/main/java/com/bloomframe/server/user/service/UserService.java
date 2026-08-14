@@ -2,6 +2,7 @@ package com.bloomframe.server.user.service;
 
 import com.bloomframe.server.common.exception.BusinessException;
 import com.bloomframe.server.common.exception.ErrorCode;
+import com.bloomframe.server.user.dto.request.FcmTokenRequest;
 import com.bloomframe.server.user.dto.request.UpdateUserRequest;
 import com.bloomframe.server.user.dto.response.UserResponse;
 import com.bloomframe.server.user.model.User;
@@ -43,6 +44,12 @@ public class UserService {
         }
 
         return UserResponse.from(findUser(userId));
+    }
+
+    // 앱이 로그인 후(또는 토큰 갱신 시) 이 사용자의 폰 FCM 토큰을 등록/갱신
+    public void updateFcmToken(String userId, FcmTokenRequest request) {
+        findUser(userId); // 존재하지 않는 유저면 여기서 예외
+        userRepository.update(userId, List.of("fcmToken"), List.of(request.fcmToken()));
     }
 
     private User findUser(String userId) {

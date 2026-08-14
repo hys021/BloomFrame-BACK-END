@@ -51,6 +51,17 @@ public class MedicationAlarmRepository {
         }
     }
 
+    /** 스케줄러가 매 분 호출: alarmTime("HH:mm")이 정확히 일치하는 알림 전체 조회. */
+    public List<MedicationAlarm> findAllByAlarmTime(String alarmTime) {
+        try {
+            QuerySnapshot snapshot = collection().whereEqualTo("alarmTime", alarmTime).get().get();
+            return snapshot.getDocuments().stream().map(this::toAlarm).toList();
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.FIRESTORE_ERROR);
+        }
+    }
+
     public Optional<MedicationAlarm> findById(String alarmId) {
         try {
             DocumentSnapshot doc = collection().document(alarmId).get().get();

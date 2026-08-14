@@ -17,6 +17,8 @@ public class User {
     private String selfPhone;
     private String email;
     private String password;
+    private String fcmToken; // 대리인 앱의 FCM 푸시 토큰 (알림 발송 대상), 미등록 시 null
+
 
     public User() {
         // Firestore 역직렬화를 위한 기본 생성자 필수
@@ -78,5 +80,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 }
