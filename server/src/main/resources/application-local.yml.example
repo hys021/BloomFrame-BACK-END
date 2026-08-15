@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: bloomframe-server
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 
 # Spark: Firestore + FCM via Firebase, files via R2 (no Blaze / Firebase Storage)
 firebase:
@@ -14,3 +18,10 @@ r2:
   access-key-id: YOUR_R2_ACCESS_KEY_ID
   secret-access-key: YOUR_R2_SECRET_ACCESS_KEY
   bucket: remote-link-assets
+
+# Copy this file to application-local.yml (gitignored). Never put a real key in git.
+# Or set env GEMINI_API_KEY instead of api-key below.
+ai:
+  gemini:
+    api-key: YOUR_GEMINI_API_KEY
+    model: gemini-2.5-flash
