@@ -3,8 +3,10 @@ package com.bloomframe.server.verification.service;
 import com.bloomframe.server.verification.exception.AuthWindowExpiredException;
 import com.bloomframe.server.verification.exception.ReminderNotFoundException;
 import com.bloomframe.server.verification.model.*;
+import com.bloomframe.server.verification.event.AuthCompletedEvent;
 import com.bloomframe.server.verification.repository.ReminderReader;
 import com.bloomframe.server.verification.repository.VerificationLogRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -23,11 +25,17 @@ public class AuthTouchService {
     private final ReminderReader reminderReader;
     private final VerificationLogRepository logRepository;
     private final Clock clock;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public AuthTouchService(ReminderReader reminderReader, VerificationLogRepository logRepository, Clock clock) {
+    public AuthTouchService(
+            ReminderReader reminderReader,
+            VerificationLogRepository logRepository,
+            Clock clock,
+            ApplicationEventPublisher eventPublisher) {
         this.reminderReader = reminderReader;
         this.logRepository = logRepository;
         this.clock = clock;
+        this.eventPublisher = eventPublisher;
     }
 
     public AuthTouchResult touch(String uid, String reminderId) {
@@ -47,6 +55,7 @@ public class AuthTouchService {
 
         VerificationLog log = VerificationLog.success(reminder.type(), reminder.id(), alertStage, scheduledAt, now);
         String logId = logRepository.save(uid, log);
+        eventPublisher.publishEvent(new AuthCompletedEvent(uid, reminderId));
 
         return new AuthTouchResult(logId, reminder.type(), alertStage, VerificationStatus.SUCCESS);
     }
