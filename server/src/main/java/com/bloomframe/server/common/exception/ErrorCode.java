@@ -36,6 +36,10 @@ public enum ErrorCode {
     HEALTH_CONDITION_NOT_FOUND(HttpStatus.NOT_FOUND, "건강 정보를 찾을 수 없습니다."),
     HEALTH_CONDITION_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 건강 정보가 아닙니다."),
 
+    // Reminder
+    REMINDER_NOT_FOUND(HttpStatus.NOT_FOUND, "리마인더를 찾을 수 없습니다."),
+    REMINDER_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 리마인더가 아닙니다."),
+
     // Firestore / Infra
     FIRESTORE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터 처리 중 오류가 발생했습니다.");
 

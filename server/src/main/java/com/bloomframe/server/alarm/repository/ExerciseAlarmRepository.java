@@ -50,6 +50,24 @@ public class ExerciseAlarmRepository {
         }
     }
 
+    public List<ExerciseAlarm> findAllByAlarmTime(String alarmTime) {
+        try {
+            QuerySnapshot snapshot = collection()
+                    .whereEqualTo("alarmTime", alarmTime)
+                    .get()
+                    .get();
+
+            return snapshot.getDocuments()
+                    .stream()
+                    .map(this::toAlarm)
+                    .toList();
+
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.FIRESTORE_ERROR);
+        }
+    }
+
     public Optional<ExerciseAlarm> findById(String alarmId) {
         try {
             DocumentSnapshot doc = collection().document(alarmId).get().get();
