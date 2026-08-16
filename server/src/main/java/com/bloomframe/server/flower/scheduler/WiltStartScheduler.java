@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
+import java.util.List;
 import java.time.Clock;
 import java.time.Instant;
 
@@ -54,17 +56,28 @@ public class WiltStartScheduler {
     }
 
     private void processUser(String uid, Instant now) {
-        for (ReminderSnapshot reminder : reminderReader.findAllForUser(uid)) {
-            Instant wiltDeadline = reminder.scheduledAt().plus(VerificationWindows.FIRST_STAGE_WINDOW);
-            if (!now.isAfter(wiltDeadline)) {
-                continue; // 아직 3분 안 지남
-            }
-            if (logRepository.existsSuccessForReminderOccurrence(uid, reminder.id(), reminder.scheduledAt())) {
-                continue; // 이미 성공했음 — 시들 필요 없음
-            }
+        List<ReminderSnapshot> reminders = reminderReader.findAllForUser(uid);
 
-            plantStateService.markWilted(uid);
-            log.info("시듦 시작: uid={}, reminderId={}, scheduledAt={}", uid, reminder.id(), reminder.scheduledAt());
+        // 이미 도래한(scheduledAt <= now) 알림 중 가장 최근 것만 판단 대상으로 삼는다.
+        // 오래된 알림이 나중에 다시 wilted를 덮어쓰는 걸 막기 위함.
+        ReminderSnapshot latestDue = reminders.stream()
+                .filter(r -> !r.scheduledAt().isAfter(now))
+                .max(Comparator.comparing(ReminderSnapshot::scheduledAt))
+                .orElse(null);
+
+        if (latestDue == null) {
+            return; // 아직 도래한 알림이 없음
         }
+
+        Instant wiltDeadline = latestDue.scheduledAt().plus(VerificationWindows.FIRST_STAGE_WINDOW);
+        if (!now.isAfter(wiltDeadline)) {
+            return; // 가장 최근 알림도 아직 3분 안 지남
+        }
+        if (logRepository.existsSuccessForReminderOccurrence(uid, latestDue.id(), latestDue.scheduledAt())) {
+            return; // 가장 최근 알림은 이미 성공했음
+        }
+
+        plantStateService.markWilted(uid);
+        log.info("시듦 시작: uid={}, reminderId={}, scheduledAt={}", uid, latestDue.id(), latestDue.scheduledAt());
     }
 }
