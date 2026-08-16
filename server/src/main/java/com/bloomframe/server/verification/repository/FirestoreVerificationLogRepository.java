@@ -103,6 +103,28 @@ public class FirestoreVerificationLogRepository implements VerificationLogReposi
         }
     }
 
+    @Override
+    public boolean existsSuccessForReminderOccurrence(String uid, String targetId, Instant scheduledAt) {
+        requireEnabled();
+        Firestore firestore = holder.firestore();
+
+        try {
+            QuerySnapshot snapshot = collection(firestore, uid)
+                    .whereEqualTo("targetId", targetId)
+                    .whereEqualTo("scheduledAt", toTimestamp(scheduledAt))
+                    .whereEqualTo("status", VerificationStatus.SUCCESS.name())
+                    .limit(1)
+                    .get()
+                    .get();
+            return !snapshot.isEmpty();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Firestore read interrupted", e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Failed to check success log for " + targetId, e.getCause());
+        }
+    }
+
     private VerificationLog toDomain(QueryDocumentSnapshot doc) {
         Timestamp scheduledAt = doc.getTimestamp("scheduledAt");
         Timestamp verifiedAt = doc.getTimestamp("verifiedAt");
