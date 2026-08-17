@@ -37,14 +37,18 @@ public class MedicationAlarmRepository {
         }
     }
 
-    // 시간순 정렬해서 반환 -> 프론트에서 index로 "1회차/2회차..."를 계산
-    public List<MedicationAlarm> findAllByUserIdOrderByAlarmTime(String userId) {
+    // 사용자의 복약 알림 목록 조회
+    public List<MedicationAlarm> findAllByUserId(String userId) {
         try {
             QuerySnapshot snapshot = collection()
                     .whereEqualTo("userId", userId)
-                    .orderBy("alarmTime", Query.Direction.ASCENDING)
                     .get().get();
-            return snapshot.getDocuments().stream().map(this::toAlarm).toList();
+
+            return snapshot.getDocuments()
+                    .stream()
+                    .map(this::toAlarm)
+                    .toList();
+
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
             throw new BusinessException(ErrorCode.FIRESTORE_ERROR);

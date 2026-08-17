@@ -24,7 +24,7 @@ public class CustomAlarmService {
     }
 
     public List<CustomAlarmResponse> getAlarms(String userId) {
-        return customAlarmRepository.findAllByUserIdOrderByAlarmTime(userId).stream()
+        return customAlarmRepository.findAllByUserId(userId).stream()
                 .map(this::toResponse)
                 .toList();
     }

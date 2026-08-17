@@ -37,13 +37,17 @@ public class CustomAlarmRepository {
         }
     }
 
-    public List<CustomAlarm> findAllByUserIdOrderByAlarmTime(String userId) {
+    public List<CustomAlarm> findAllByUserId(String userId) {
         try {
             QuerySnapshot snapshot = collection()
                     .whereEqualTo("userId", userId)
-                    .orderBy("alarmTime", Query.Direction.ASCENDING)
                     .get().get();
-            return snapshot.getDocuments().stream().map(this::toAlarm).toList();
+
+            return snapshot.getDocuments()
+                    .stream()
+                    .map(this::toAlarm)
+                    .toList();
+
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
             throw new BusinessException(ErrorCode.FIRESTORE_ERROR);

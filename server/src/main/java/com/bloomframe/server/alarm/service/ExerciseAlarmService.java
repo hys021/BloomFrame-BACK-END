@@ -24,7 +24,7 @@ public class ExerciseAlarmService {
     }
 
     public List<ExerciseAlarmResponse> getAlarms(String userId) {
-        return exerciseAlarmRepository.findAllByUserIdOrderByAlarmTime(userId).stream()
+        return exerciseAlarmRepository.findAllByUserId(userId).stream()
                 .map(this::toResponse)
                 .toList();
     }
