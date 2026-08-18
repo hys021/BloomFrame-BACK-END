@@ -25,7 +25,7 @@ public class MedicationAlarmService {
 
     // 시간순으로 반환 -> "1회차/2회차..."는 프론트에서 배열 index로 계산 (sequence 컬럼 없음)
     public List<AlarmResponse> getAlarms(String userId) {
-        return medicationAlarmRepository.findAllByUserIdOrderByAlarmTime(userId).stream()
+        return medicationAlarmRepository.findAllByUserId(userId).stream()
                 .map(this::toResponse)
                 .toList();
     }

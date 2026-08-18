@@ -6,6 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
 
 public record CustomAlarmRequest(
-        @NotBlank(message = "알림 항목 이름은 필수입니다.") String title,
+        String title,
         @NotNull LocalTime alarmTime
 ) {}
