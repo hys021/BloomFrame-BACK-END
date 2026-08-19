@@ -58,6 +58,26 @@ public class NoopAiDataStore implements AiDataStore {
     }
 
     @Override
+    public AiMedicationDto createMedication(String uid, AiMedicationDto medication) {
+        String medicationId = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        AiMedicationDto saved = new AiMedicationDto(
+                medicationId,
+                medication.name(),
+                medication.dosePerDay(),
+                medication.timing(),
+                medication.imageUrl(),
+                medication.analysis());
+        medications.put(uid + ":" + medicationId, saved);
+        log.info("[noop] createMedication uid={} id={}", uid, medicationId);
+        return saved;
+    }
+
+    @Override
+    public List<String> listHealthConditionNames(String uid) {
+        return List.of();
+    }
+
+    @Override
     public List<String> listDeviceTokens(String uid) {
         return List.of();
     }

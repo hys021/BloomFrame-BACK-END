@@ -1,6 +1,7 @@
 package com.bloomframe.server.ai;
 
 import com.bloomframe.server.ai.dto.MedicineAnalysisDto;
+import com.bloomframe.server.ai.dto.MedicinePhotoAnalysisResult;
 import com.bloomframe.server.config.AiProperties;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestClientResponseException;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.List;
 import java.util.Locale;
 
 public class GeminiAiClient implements AiClient {
@@ -49,10 +51,11 @@ public class GeminiAiClient implements AiClient {
     }
 
     @Override
-    public MedicineAnalysisDto analyzeMedicinePhoto(byte[] image, String contentType) {
-        ObjectNode body = textAndImageBody(AiPrompts.MEDICINE, image, contentType, 0.1);
+    public MedicinePhotoAnalysisResult analyzeMedicinePhoto(
+            byte[] image, String contentType, List<String> healthConditions) {
+        ObjectNode body = textAndImageBody(AiPrompts.medicine(healthConditions), image, contentType, 0.1);
         try {
-            return jsonMapper.toAnalysis(generate(body));
+            return jsonMapper.toPhotoAnalysis(generate(body));
         } catch (IllegalStateException e) {
             throw new AiException("Could not read medicine info from the photo", e);
         }

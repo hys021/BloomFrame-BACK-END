@@ -20,7 +20,7 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @    @Value("${app.cors.allowed-origins:https://bloomframe.vercel.app,http://localhost:3000,http://localhost:5173}")
+    @Value("${app.cors.allowed-origins:https://bloomframe.vercel.app,http://localhost:3000,http://localhost:5173}")
     private List<String> allowedOrigins;
 
     @Bean
