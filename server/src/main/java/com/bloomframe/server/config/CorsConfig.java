@@ -28,6 +28,7 @@ public class CorsConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
                 "https://bloomframe.vercel.app",
+                "https://bloomframe-git-develop-jangeunsu9505-4566s-projects.vercel.app",
                 "https://bloomframe-*.vercel.app",
                 "http://localhost:3000",
                 "http://localhost:5173"
