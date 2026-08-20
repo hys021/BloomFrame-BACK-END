@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.bloomframe.server.user.dto.response.SendCodeResponse;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -27,9 +28,17 @@ public class AuthController {
     }
 
     @PostMapping("/send-code")
-    public ResponseEntity<MessageResponse> sendCode(@Valid @RequestBody SendCodeRequest request) {
-        authService.sendCode(request);
-        return ResponseEntity.ok(MessageResponse.of("인증번호가 발송되었습니다."));
+    public ResponseEntity<SendCodeResponse> sendCode(
+            @Valid @RequestBody SendCodeRequest request) {
+
+        String code = authService.sendCode(request);
+
+        return ResponseEntity.ok(
+                SendCodeResponse.of(
+                        "인증번호가 발송되었습니다.",
+                        code
+                )
+        );
     }
 
     @PostMapping("/verify-code")
