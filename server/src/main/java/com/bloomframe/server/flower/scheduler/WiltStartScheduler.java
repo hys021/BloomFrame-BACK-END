@@ -56,7 +56,8 @@ public class WiltStartScheduler {
     }
 
     private void processUser(String uid, Instant now) {
-        List<ReminderSnapshot> reminders = reminderReader.findAllForUser(uid);
+        Instant since = now.minus(VerificationWindows.SCHEDULER_LOOKBACK);
+        List<ReminderSnapshot> reminders = reminderReader.findRecentForUser(uid, since);
 
         // 이미 도래한(scheduledAt <= now) 알림 중 가장 최근 것만 판단 대상으로 삼는다.
         // 오래된 알림이 나중에 다시 wilted를 덮어쓰는 걸 막기 위함.
