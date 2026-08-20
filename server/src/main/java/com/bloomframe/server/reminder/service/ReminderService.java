@@ -8,6 +8,8 @@ import com.bloomframe.server.common.exception.ErrorCode;
 import com.bloomframe.server.reminder.dto.response.ReminderResponse;
 import com.bloomframe.server.reminder.model.Reminder;
 import com.bloomframe.server.reminder.repository.ReminderRepository;
+import com.bloomframe.server.verification.model.ReminderSnapshot;
+import com.bloomframe.server.verification.model.ReminderType;
 import com.google.cloud.Timestamp;
 import org.springframework.stereotype.Service;
 
@@ -24,17 +26,20 @@ public class ReminderService {
     private final MedicationAlarmRepository medicationAlarmRepository;
     private final ExerciseAlarmRepository exerciseAlarmRepository;
     private final CustomAlarmRepository customAlarmRepository;
+    private final ReminderFollowUpService reminderFollowUpService;
 
     public ReminderService(
             ReminderRepository reminderRepository,
             MedicationAlarmRepository medicationAlarmRepository,
             ExerciseAlarmRepository exerciseAlarmRepository,
-            CustomAlarmRepository customAlarmRepository
+            CustomAlarmRepository customAlarmRepository,
+            ReminderFollowUpService reminderFollowUpService
     ) {
         this.reminderRepository = reminderRepository;
         this.medicationAlarmRepository = medicationAlarmRepository;
         this.exerciseAlarmRepository = exerciseAlarmRepository;
         this.customAlarmRepository = customAlarmRepository;
+        this.reminderFollowUpService = reminderFollowUpService;
     }
 
     public List<ReminderResponse> getReminders(String userId) {
@@ -119,6 +124,15 @@ public class ReminderService {
                 "PENDING"
         );
 
-        reminderRepository.save(reminder);
+        Reminder saved = reminderRepository.save(reminder);
+
+        reminderFollowUpService.scheduleFollowUps(
+                userId,
+                new ReminderSnapshot(
+                        saved.getId(),
+                        ReminderType.valueOf(type),
+                        scheduledTime.toInstant()
+                )
+        );
     }
 }
