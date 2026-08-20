@@ -13,6 +13,7 @@ public class User {
     private String id; // Firestore document id (자동 생성)
 
     private String name;
+    private Integer age;
     private String caregiverPhone;
     private String selfPhone;
     private String email;
@@ -22,8 +23,9 @@ public class User {
         // Firestore 역직렬화를 위한 기본 생성자 필수
     }
 
-    public User(String name, String caregiverPhone, String selfPhone, String email, String password) {
+    public User(String name, Integer age, String caregiverPhone, String selfPhone, String email, String password) {
         this.name = name;
+        this.age = age;
         this.caregiverPhone = caregiverPhone;
         this.selfPhone = selfPhone;
         this.email = email;
@@ -46,6 +48,14 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
     }
 
     public String getCaregiverPhone() {

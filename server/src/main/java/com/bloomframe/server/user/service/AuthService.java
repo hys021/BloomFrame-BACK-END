@@ -84,6 +84,7 @@ public class AuthService {
 
         User user = new User(
                 request.name(),
+                request.age(),
                 request.caregiverPhone(),
                 request.selfPhone(),
                 request.email(),
