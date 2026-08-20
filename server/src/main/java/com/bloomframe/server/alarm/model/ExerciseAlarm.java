@@ -10,14 +10,21 @@ public class ExerciseAlarm {
     private String userId;
     private String exerciseName;
     private String alarmTime; // "HH:mm"
+    private String startDate;  // "yyyy-MM-dd"
 
     public ExerciseAlarm() {
     }
 
-    public ExerciseAlarm(String userId, String exerciseName, String alarmTime) {
+    public ExerciseAlarm(
+            String userId,
+            String exerciseName,
+            String alarmTime,
+            String startDate
+    ) {
         this.userId = userId;
         this.exerciseName = exerciseName;
         this.alarmTime = alarmTime;
+        this.startDate = startDate;
     }
 
     @Exclude
@@ -52,5 +59,13 @@ public class ExerciseAlarm {
 
     public void setAlarmTime(String alarmTime) {
         this.alarmTime = alarmTime;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
     }
 }

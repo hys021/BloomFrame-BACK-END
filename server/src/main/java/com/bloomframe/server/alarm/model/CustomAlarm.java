@@ -10,14 +10,21 @@ public class CustomAlarm {
     private String userId;
     private String title;
     private String alarmTime; // "HH:mm"
+    private String startDate; // "yyyy-MM-dd"
 
     public CustomAlarm() {
     }
 
-    public CustomAlarm(String userId, String title, String alarmTime) {
+    public CustomAlarm(
+            String userId,
+            String title,
+            String alarmTime,
+            String startDate
+    ) {
         this.userId = userId;
         this.title = title;
         this.alarmTime = alarmTime;
+        this.startDate = startDate;
     }
 
     @Exclude
@@ -52,5 +59,13 @@ public class CustomAlarm {
 
     public void setAlarmTime(String alarmTime) {
         this.alarmTime = alarmTime;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
     }
 }
