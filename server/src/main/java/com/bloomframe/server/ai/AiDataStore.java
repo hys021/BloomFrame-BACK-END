@@ -30,4 +30,6 @@ public interface AiDataStore {
     List<NewsletterDto> listNewsletters(String uid);
 
     List<NewsletterDto> listDueNewsletters(Instant now);
+
+    Optional<NewsletterDto> findPendingNewsletterByAlarm(String uid, String alarmId, Instant alarmAt);
 }

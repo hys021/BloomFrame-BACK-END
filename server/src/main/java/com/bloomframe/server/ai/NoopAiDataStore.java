@@ -121,4 +121,17 @@ public class NoopAiDataStore implements AiDataStore {
         }
         return due;
     }
+
+    @Override
+    public Optional<NewsletterDto> findPendingNewsletterByAlarm(String uid, String alarmId, Instant alarmAt) {
+        Map<String, NewsletterDto> byUser = newsletters.get(uid);
+        if (byUser == null) {
+            return Optional.empty();
+        }
+        return byUser.values().stream()
+                .filter(n -> alarmId.equals(n.alarmId()))
+                .filter(n -> "pending".equals(n.status()))
+                .filter(n -> n.scheduledAt() != null && n.scheduledAt().equals(alarmAt))
+                .findFirst();
+    }
 }
