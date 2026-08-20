@@ -2,10 +2,14 @@ package com.bloomframe.server.ai;
 
 import com.bloomframe.server.ai.dto.AiMedicationDto;
 import com.bloomframe.server.ai.dto.MedicineAnalysisDto;
+import com.bloomframe.server.ai.dto.MedicineAnalyzeResponse;
+import com.bloomframe.server.ai.dto.MedicinePhotoAnalysisResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -29,7 +33,7 @@ public class MedicineAnalyzeService {
         this.photoStorage = photoStorage;
     }
 
-    public AiMedicationDto analyze(String uid, String medicationId, MultipartFile file) {
+    public MedicineAnalyzeResponse analyze(String uid, String medicationId, MultipartFile file) {
         AiMedicationDto medication = aiDataStore.getMedication(uid, medicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Medication not found: " + medicationId));
 
@@ -54,9 +58,33 @@ public class MedicineAnalyzeService {
             imageUrl = storagePath;
         }
 
-        MedicineAnalysisDto analysis = aiClient.analyzeMedicinePhoto(image, contentType);
-        AiMedicationDto updated = medication.withPhotoAndAnalysis(imageUrl, analysis);
-        return aiDataStore.updateMedication(uid, medicationId, updated);
+        List<String> healthConditions = aiDataStore.listHealthConditionNames(uid);
+        MedicinePhotoAnalysisResult photoAnalysis =
+                aiClient.analyzeMedicinePhoto(image, contentType, healthConditions);
+        if (photoAnalysis.medications().isEmpty()) {
+            throw new IllegalArgumentException("Could not read any medicine from the photo");
+        }
+
+        List<AiMedicationDto> saved = new ArrayList<>();
+        boolean first = true;
+        for (MedicineAnalysisDto analysis : photoAnalysis.medications()) {
+            if (first) {
+                AiMedicationDto updated = medication.withPhotoAndAnalysis(imageUrl, analysis);
+                saved.add(aiDataStore.updateMedication(uid, medicationId, updated));
+                first = false;
+            } else {
+                AiMedicationDto draft = new AiMedicationDto(
+                        null,
+                        medication.name(),
+                        medication.dosePerDay(),
+                        medication.timing(),
+                        imageUrl,
+                        null);
+                AiMedicationDto created = draft.withPhotoAndAnalysis(imageUrl, analysis);
+                saved.add(aiDataStore.createMedication(uid, created));
+            }
+        }
+        return new MedicineAnalyzeResponse(saved);
     }
 
     private static String r2Key(String imageUrl, String uid, String medicationId) {

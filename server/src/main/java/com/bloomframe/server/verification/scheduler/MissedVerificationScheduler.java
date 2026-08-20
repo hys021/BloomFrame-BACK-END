@@ -52,7 +52,8 @@ public class MissedVerificationScheduler {
     }
 
     private void processUser(String uid, Instant now) {
-        for (ReminderSnapshot reminder : reminderReader.findAllForUser(uid)) {
+        Instant since = now.minus(VerificationWindows.SCHEDULER_LOOKBACK);
+        for (ReminderSnapshot reminder : reminderReader.findRecentForUser(uid, since)) {
             Instant finalDeadline = reminder.scheduledAt().plus(VerificationWindows.FINAL_WINDOW);
             if (!now.isAfter(finalDeadline)) {
                 continue; // 아직 10분 안 지남

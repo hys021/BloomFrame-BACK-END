@@ -3,7 +3,12 @@ package com.bloomframe.server.ai;
 import com.bloomframe.server.ai.dto.AiMedicationDto;
 import com.bloomframe.server.ai.dto.NewsletterDto;
 import com.bloomframe.server.ai.dto.NewsletterGenerateRequest;
+import com.bloomframe.server.alarm.repository.CustomAlarmRepository;
+import com.bloomframe.server.alarm.repository.ExerciseAlarmRepository;
+import com.bloomframe.server.alarm.repository.MedicationAlarmRepository;
 import com.bloomframe.server.firebase.FcmService;
+import com.bloomframe.server.reminder.model.Reminder;
+import com.bloomframe.server.reminder.repository.ReminderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -12,9 +17,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,15 +30,32 @@ public class NewsletterService {
 
     private static final Logger log = LoggerFactory.getLogger(NewsletterService.class);
     private static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
+    private static final int ALARM_PREP_MINUTES = 10;
 
     private final AiClient aiClient;
     private final AiDataStore aiDataStore;
     private final FcmService fcmService;
+    private final MedicationAlarmRepository medicationAlarmRepository;
+    private final ExerciseAlarmRepository exerciseAlarmRepository;
+    private final CustomAlarmRepository customAlarmRepository;
+    private final ReminderRepository reminderRepository;
 
-    public NewsletterService(AiClient aiClient, AiDataStore aiDataStore, FcmService fcmService) {
+    public NewsletterService(
+            AiClient aiClient,
+            AiDataStore aiDataStore,
+            FcmService fcmService,
+            MedicationAlarmRepository medicationAlarmRepository,
+            ExerciseAlarmRepository exerciseAlarmRepository,
+            CustomAlarmRepository customAlarmRepository,
+            ReminderRepository reminderRepository
+    ) {
         this.aiClient = aiClient;
         this.aiDataStore = aiDataStore;
         this.fcmService = fcmService;
+        this.medicationAlarmRepository = medicationAlarmRepository;
+        this.exerciseAlarmRepository = exerciseAlarmRepository;
+        this.customAlarmRepository = customAlarmRepository;
+        this.reminderRepository = reminderRepository;
     }
 
     public NewsletterDto generate(String uid, NewsletterGenerateRequest request) {
@@ -46,7 +71,7 @@ public class NewsletterService {
         List<String> tips = List.of();
         if (sendNow) {
             NewsletterContent content = aiClient.generateNewsletter(
-                    context(uid, req.reminderId(), req.trigger(), kind));
+                    context(uid, req.reminderId(), req.trigger(), kind, scheduledAt));
             title = content.title();
             body = content.body();
             tips = content.tips();
@@ -58,6 +83,7 @@ public class NewsletterService {
                 uid,
                 trigger,
                 req.reminderId(),
+                null,
                 kind,
                 title,
                 body,
@@ -70,6 +96,74 @@ public class NewsletterService {
             return send(uid, saved.id());
         }
         return saved;
+    }
+
+    /**
+     * 매 분 실행 — 알람 시각 10분 전에 해당하는 알람을 조회해 AI newsletter를 선생성한다.
+     * Reminder와 무관하게 alarmId + scheduledAt으로만 식별한다.
+     */
+    public void pregenerateForUpcomingAlarms() {
+        ZonedDateTime alarmTime = ZonedDateTime.now(ZONE)
+                .plusMinutes(ALARM_PREP_MINUTES)
+                .withSecond(0)
+                .withNano(0);
+        String alarmTimeStr = alarmTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+        Instant alarmInstant = alarmTime.toInstant();
+
+        medicationAlarmRepository.findAllByAlarmTime(alarmTimeStr)
+                .forEach(alarm -> pregenerateForAlarm(alarm.getUserId(), alarm.getId(), alarmInstant));
+
+        exerciseAlarmRepository.findAllByAlarmTime(alarmTimeStr)
+                .forEach(alarm -> pregenerateForAlarm(alarm.getUserId(), alarm.getId(), alarmInstant));
+
+        customAlarmRepository.findAllByAlarmTime(alarmTimeStr)
+                .forEach(alarm -> pregenerateForAlarm(alarm.getUserId(), alarm.getId(), alarmInstant));
+    }
+
+    public NewsletterDto pregenerateForAlarm(String uid, String alarmId, Instant alarmAt) {
+        Optional<NewsletterDto> existing = aiDataStore.findPendingNewsletterByAlarm(uid, alarmId, alarmAt);
+        if (existing.isPresent() && hasContent(existing.get())) {
+            return existing.get();
+        }
+
+        String kind = resolveKind(uid, null);
+        NewsletterContent content = aiClient.generateNewsletter(
+                context(uid, null, "alarm_prep", kind, alarmAt));
+        NewsletterDto saved = aiDataStore.saveNewsletter(uid, new NewsletterDto(
+                newId(),
+                uid,
+                "alarm_prep",
+                null,
+                alarmId,
+                kind,
+                content.title(),
+                content.body(),
+                content.tips(),
+                "pending",
+                alarmAt,
+                null
+        ));
+        log.info("Newsletter pregenerated uid={} alarmId={} issueId={}", uid, alarmId, saved.id());
+        return saved;
+    }
+
+    /**
+     * 터치 인증 후 — Reminder의 targetId(alarmId) + scheduledAt으로 선생성본을 찾아 발송한다.
+     */
+    public NewsletterDto sendAfterAuth(String uid, String reminderId) {
+        Optional<Reminder> reminder = reminderRepository.findById(uid, reminderId);
+        if (reminder.isPresent()) {
+            Instant alarmAt = Instant.ofEpochSecond(
+                    reminder.get().getScheduledAt().getSeconds(),
+                    reminder.get().getScheduledAt().getNanos());
+            Optional<NewsletterDto> pending = aiDataStore.findPendingNewsletterByAlarm(
+                    uid, reminder.get().getTargetId(), alarmAt);
+            if (pending.isPresent() && hasContent(pending.get())) {
+                return send(uid, pending.get().id());
+            }
+        }
+        log.info("No pregenerated newsletter uid={} reminderId={} — generating on auth", uid, reminderId);
+        return generate(uid, new NewsletterGenerateRequest(reminderId, "alarm_dismiss", null));
     }
 
     public List<NewsletterDto> list(String uid) {
@@ -87,7 +181,7 @@ public class NewsletterService {
         if (existing.title() == null || existing.title().isBlank()) {
             String kind = resolveKind(uid, existing.reminderId());
             NewsletterContent content = aiClient.generateNewsletter(
-                    context(uid, existing.reminderId(), existing.trigger(), kind));
+                    context(uid, existing.reminderId(), existing.trigger(), kind, existing.scheduledAt()));
             ready = existing.withKindAndContent(kind, content.title(), content.body(), content.tips());
         }
 
@@ -170,7 +264,7 @@ public class NewsletterService {
                 });
     }
 
-    private NewsletterContext context(String uid, String medicationId, String trigger, String kind) {
+    private NewsletterContext context(String uid, String medicationId, String trigger, String kind, Instant at) {
         String name = aiDataStore.findUserName(uid).orElse("사용자");
         String drug = "";
         String dosage = "";
@@ -200,11 +294,13 @@ public class NewsletterService {
             }
         }
         return new NewsletterContext(
-                name, drug, dosage, frequency, category, trigger, kind, timeOfDay());
+                name, drug, dosage, frequency, category, trigger, kind, timeOfDay(at),
+                aiDataStore.listHealthConditionNames(uid));
     }
 
-    private static String timeOfDay() {
-        int hour = LocalTime.now(ZONE).getHour();
+    private static String timeOfDay(Instant at) {
+        Instant when = at != null ? at : Instant.now();
+        int hour = LocalTime.ofInstant(when, ZONE).getHour();
         if (hour < 12) {
             return "morning";
         }
@@ -223,6 +319,10 @@ public class NewsletterService {
             return trimmed;
         }
         return trimmed.substring(0, max - 1) + "...";
+    }
+
+    private static boolean hasContent(NewsletterDto newsletter) {
+        return newsletter.title() != null && !newsletter.title().isBlank();
     }
 
     private static String newId() {

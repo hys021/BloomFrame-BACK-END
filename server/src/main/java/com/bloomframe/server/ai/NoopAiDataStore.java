@@ -58,6 +58,26 @@ public class NoopAiDataStore implements AiDataStore {
     }
 
     @Override
+    public AiMedicationDto createMedication(String uid, AiMedicationDto medication) {
+        String medicationId = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        AiMedicationDto saved = new AiMedicationDto(
+                medicationId,
+                medication.name(),
+                medication.dosePerDay(),
+                medication.timing(),
+                medication.imageUrl(),
+                medication.analysis());
+        medications.put(uid + ":" + medicationId, saved);
+        log.info("[noop] createMedication uid={} id={}", uid, medicationId);
+        return saved;
+    }
+
+    @Override
+    public List<String> listHealthConditionNames(String uid) {
+        return List.of();
+    }
+
+    @Override
     public List<String> listDeviceTokens(String uid) {
         return List.of();
     }
@@ -100,5 +120,18 @@ public class NoopAiDataStore implements AiDataStore {
             }
         }
         return due;
+    }
+
+    @Override
+    public Optional<NewsletterDto> findPendingNewsletterByAlarm(String uid, String alarmId, Instant alarmAt) {
+        Map<String, NewsletterDto> byUser = newsletters.get(uid);
+        if (byUser == null) {
+            return Optional.empty();
+        }
+        return byUser.values().stream()
+                .filter(n -> alarmId.equals(n.alarmId()))
+                .filter(n -> "pending".equals(n.status()))
+                .filter(n -> n.scheduledAt() != null && n.scheduledAt().equals(alarmAt))
+                .findFirst();
     }
 }

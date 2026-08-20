@@ -12,6 +12,10 @@ public final class VerificationWindows {
     public static final Duration FIRST_STAGE_WINDOW = Duration.ofMinutes(3);
     public static final Duration FINAL_WINDOW = Duration.ofMinutes(10);
 
+    /** 스케줄러가 reminder를 조회할 때 볼 최대 과거 범위. FINAL_WINDOW(10분)보다
+     *  여유를 둬서, 경계 시점(정확히 10분째)에 놓치는 일이 없게 함. */
+    public static final Duration SCHEDULER_LOOKBACK = FINAL_WINDOW.plusMinutes(2);
+
     private VerificationWindows() {
     }
 }

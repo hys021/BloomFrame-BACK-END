@@ -1,6 +1,5 @@
 package com.bloomframe.server.ai;
 
-import com.bloomframe.server.ai.dto.NewsletterGenerateRequest;
 import com.bloomframe.server.verification.event.AuthCompletedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +22,7 @@ public class AuthCompletedNewsletterListener {
     @EventListener
     public void onAuthCompleted(AuthCompletedEvent event) {
         try {
-            newsletterService.generate(
-                    event.uid(),
-                    new NewsletterGenerateRequest(event.reminderId(), "alarm_dismiss", null));
+            newsletterService.sendAfterAuth(event.uid(), event.reminderId());
         } catch (Exception e) {
             log.warn("Newsletter after auth-touch failed uid={} reminderId={}",
                     event.uid(), event.reminderId(), e);

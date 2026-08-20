@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 public class FirestoreAiDataStore implements AiDataStore {
 
     private static final String MEDICATIONS = "medications";
+    private static final String HEALTH_CONDITIONS = "healthConditions";
 
     private final Firestore firestore;
 
@@ -74,6 +75,36 @@ public class FirestoreAiDataStore implements AiDataStore {
         DocumentReference ref = firestore.collection(MEDICATIONS).document(medicationId);
         await(ref.set(toMedicationPatch(medication), SetOptions.merge()));
         return medication;
+    }
+
+    @Override
+    public AiMedicationDto createMedication(String uid, AiMedicationDto medication) {
+        DocumentReference ref = firestore.collection(MEDICATIONS).document();
+        AiMedicationDto toSave = new AiMedicationDto(
+                ref.getId(),
+                medication.name(),
+                medication.dosePerDay(),
+                medication.timing(),
+                medication.imageUrl(),
+                medication.analysis());
+        Map<String, Object> data = toMedicationPatch(toSave);
+        data.put("userId", uid);
+        await(ref.set(data));
+        return toSave;
+    }
+
+    @Override
+    public List<String> listHealthConditionNames(String uid) {
+        QuerySnapshot snapshot = await(
+                firestore.collection(HEALTH_CONDITIONS).whereEqualTo("userId", uid).get());
+        List<String> names = new ArrayList<>();
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            String name = doc.getString("conditionName");
+            if (name != null && !name.isBlank()) {
+                names.add(name);
+            }
+        }
+        return names;
     }
 
     @Override
@@ -146,6 +177,28 @@ public class FirestoreAiDataStore implements AiDataStore {
             }
         }
         return result;
+    }
+
+    @Override
+    public Optional<NewsletterDto> findPendingNewsletterByAlarm(String uid, String alarmId, Instant alarmAt) {
+        if (alarmId == null || alarmId.isBlank() || alarmAt == null) {
+            return Optional.empty();
+        }
+        QuerySnapshot snapshot = await(
+                firestore.collection("users").document(uid).collection("newsletters")
+                        .whereEqualTo("alarmId", alarmId)
+                        .get());
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            NewsletterDto newsletter = fromNewsletterDoc(uid, doc.getId(), doc.getData());
+            if (!"pending".equals(newsletter.status())) {
+                continue;
+            }
+            if (newsletter.scheduledAt() == null || !newsletter.scheduledAt().equals(alarmAt)) {
+                continue;
+            }
+            return Optional.of(newsletter);
+        }
+        return Optional.empty();
     }
 
     private static void addToken(List<String> tokens, String token) {
@@ -221,6 +274,7 @@ public class FirestoreAiDataStore implements AiDataStore {
         data.put("uid", newsletter.uid());
         data.put("trigger", newsletter.trigger());
         data.put("reminderId", newsletter.reminderId());
+        data.put("alarmId", newsletter.alarmId());
         data.put("kind", newsletter.kind());
         data.put("title", newsletter.title());
         data.put("body", newsletter.body());
@@ -243,6 +297,7 @@ public class FirestoreAiDataStore implements AiDataStore {
                 docUid,
                 (String) data.get("trigger"),
                 (String) data.get("reminderId"),
+                (String) data.get("alarmId"),
                 (String) data.get("kind"),
                 (String) data.get("title"),
                 (String) data.get("body"),
