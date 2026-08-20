@@ -200,7 +200,8 @@ public class NewsletterService {
             }
         }
         return new NewsletterContext(
-                name, drug, dosage, frequency, category, trigger, kind, timeOfDay());
+                name, drug, dosage, frequency, category, trigger, kind, timeOfDay(),
+                aiDataStore.listHealthConditionNames(uid));
     }
 
     private static String timeOfDay() {

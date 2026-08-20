@@ -1,6 +1,7 @@
 package com.bloomframe.server.ai;
 
 import com.bloomframe.server.ai.dto.MedicineAnalysisDto;
+import com.bloomframe.server.ai.dto.MedicinePhotoAnalysisResult;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -15,8 +16,33 @@ final class AiJsonMapper {
         this.objectMapper = objectMapper;
     }
 
-    MedicineAnalysisDto toAnalysis(String raw) {
+    MedicinePhotoAnalysisResult toPhotoAnalysis(String raw) {
         JsonNode node = parseObject(raw);
+        List<MedicineAnalysisDto> medications = new ArrayList<>();
+        JsonNode medicationsNode = node.get("medications");
+        if (medicationsNode != null && medicationsNode.isArray()) {
+            medicationsNode.forEach(item -> medications.add(toAnalysisFromNode(item)));
+        } else if (node.has("drugName")) {
+            medications.add(toAnalysisFromNode(node));
+        }
+        double confidence = node.path("confidence").asDouble(0.0);
+        if (confidence == 0.0 && !medications.isEmpty()) {
+            confidence = medications.stream()
+                    .mapToDouble(MedicineAnalysisDto::confidence)
+                    .average()
+                    .orElse(0.0);
+        }
+        return new MedicinePhotoAnalysisResult(
+                List.copyOf(medications),
+                text(node, "rawText"),
+                confidence);
+    }
+
+    MedicineAnalysisDto toAnalysis(String raw) {
+        return toAnalysisFromNode(parseObject(raw));
+    }
+
+    private MedicineAnalysisDto toAnalysisFromNode(JsonNode node) {
         List<String> timings = new ArrayList<>();
         JsonNode timingsNode = node.get("timings");
         if (timingsNode != null && timingsNode.isArray()) {

@@ -1,6 +1,7 @@
 package com.bloomframe.server.ai;
 
 import com.bloomframe.server.ai.dto.MedicineAnalysisDto;
+import com.bloomframe.server.ai.dto.MedicinePhotoAnalysisResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,18 +17,33 @@ public class NoopAiClient implements AiClient {
     }
 
     @Override
-    public MedicineAnalysisDto analyzeMedicinePhoto(byte[] image, String contentType) {
-        log.info("[noop] analyzeMedicinePhoto bytes={} type={}", image.length, contentType);
-        return new MedicineAnalysisDto(
-                "타이레놀",
-                "1정",
-                "1일 3회",
-                3,
-                "식후",
-                List.of("08:00", "12:00", "20:00"),
-                "mock OCR — set GEMINI_API_KEY to analyze real photos",
-                0.2
-        );
+    public MedicinePhotoAnalysisResult analyzeMedicinePhoto(
+            byte[] image, String contentType, List<String> healthConditions) {
+        log.info("[noop] analyzeMedicinePhoto bytes={} type={} conditions={}",
+                image.length, contentType, healthConditions);
+        List<MedicineAnalysisDto> medications = List.of(
+                new MedicineAnalysisDto(
+                        "타이레놀",
+                        "1정",
+                        "1일 3회",
+                        3,
+                        "식후",
+                        List.of("08:00", "12:00", "20:00"),
+                        "mock OCR — set GEMINI_API_KEY to analyze real photos",
+                        0.2),
+                new MedicineAnalysisDto(
+                        "오메프라졸",
+                        "1캡슐",
+                        "1일 1회",
+                        1,
+                        "식전",
+                        List.of("08:00"),
+                        "mock second drug from pill bag",
+                        0.2));
+        return new MedicinePhotoAnalysisResult(
+                medications,
+                "mock pill bag — " + medications.size() + " drugs",
+                0.2);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.bloomframe.server.controller;
 
 import com.bloomframe.server.ai.MedicineAnalyzeService;
-import com.bloomframe.server.ai.dto.AiMedicationDto;
+import com.bloomframe.server.ai.dto.MedicineAnalyzeResponse;
 import com.bloomframe.server.common.security.AuthenticatedUid;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +21,7 @@ public class MedicineAnalyzeController {
     }
 
     @PostMapping("/analyze")
-    public AiMedicationDto analyze(
+    public MedicineAnalyzeResponse analyze(
             @PathVariable String id,
             @AuthenticatedUid String uid,
             @RequestParam(value = "file", required = false) MultipartFile file) {

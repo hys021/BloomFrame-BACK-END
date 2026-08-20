@@ -17,6 +17,10 @@ public interface AiDataStore {
 
     AiMedicationDto updateMedication(String uid, String medicationId, AiMedicationDto medication);
 
+    AiMedicationDto createMedication(String uid, AiMedicationDto medication);
+
+    List<String> listHealthConditionNames(String uid);
+
     List<String> listDeviceTokens(String uid);
 
     NewsletterDto saveNewsletter(String uid, NewsletterDto newsletter);
