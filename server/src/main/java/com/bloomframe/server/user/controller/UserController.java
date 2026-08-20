@@ -6,6 +6,7 @@ import com.bloomframe.server.user.dto.response.UserResponse;
 import com.bloomframe.server.user.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -23,8 +24,9 @@ public class UserController {
     }
 
     @PatchMapping("/me")
-    public UserResponse updateMe(@AuthenticationPrincipal CustomUserPrincipal principal,
-                                  @RequestBody UpdateUserRequest request) {
+    public UserResponse updateMe(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @Valid @RequestBody UpdateUserRequest request) {
         return userService.updateMe(principal.getUserId(), request);
     }
 }
