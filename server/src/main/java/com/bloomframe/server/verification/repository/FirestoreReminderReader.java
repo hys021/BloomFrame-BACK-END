@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.time.Instant;
 
 /**
  * Java #1 소유 컬렉션(users/{uid}/reminders)에 대한 읽기 전용 접근.
@@ -75,6 +76,36 @@ public class FirestoreReminderReader implements ReminderReader {
         } catch (ExecutionException e) {
             throw new IllegalStateException("Failed to list reminders for uid " + uid, e.getCause());
         }
+    }
+
+    @Override
+    public List<ReminderSnapshot> findRecentForUser(String uid, Instant since) {
+        if (!holder.enabled()) {
+            throw new IllegalStateException("Firestore is disabled — check application-local.yml firebase.credentials-path");
+        }
+        Firestore firestore = holder.firestore();
+        CollectionReference collection = firestore.collection("users").document(uid).collection("reminders");
+
+        try {
+            QuerySnapshot snapshot = collection
+                    .whereGreaterThanOrEqualTo("scheduledAt", toTimestamp(since))
+                    .get()
+                    .get();
+            List<ReminderSnapshot> result = new ArrayList<>();
+            for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+                result.add(parse(doc));
+            }
+            return result;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Firestore read interrupted", e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Failed to list recent reminders for uid " + uid, e.getCause());
+        }
+    }
+
+    private Timestamp toTimestamp(Instant instant) {
+        return Timestamp.ofTimeSecondsAndNanos(instant.getEpochSecond(), instant.getNano());
     }
 
     private ReminderSnapshot parse(DocumentSnapshot doc) {
