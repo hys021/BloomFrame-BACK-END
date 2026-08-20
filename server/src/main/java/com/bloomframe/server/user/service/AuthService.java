@@ -44,15 +44,21 @@ public class AuthService {
         this.smsSender = smsSender;
     }
 
-    public void sendCode(SendCodeRequest request) {
+    public String sendCode(SendCodeRequest request) {
         String code = generateCode();
         Instant expiresAt = Instant.now().plus(CODE_VALID_MINUTES, ChronoUnit.MINUTES);
 
-        // phone이 문서 ID이므로 save()가 곧 "기존 값 덮어쓰기" -> 재발송 시 최신 코드만 유효
-        PhoneVerification verification = new PhoneVerification(request.phone(), code, expiresAt);
+        PhoneVerification verification =
+                new PhoneVerification(request.phone(), code, expiresAt);
+
         phoneVerificationRepository.save(verification);
 
-        smsSender.send(request.phone(), "[인증번호] " + code + " (5분 이내 입력)");
+        smsSender.send(
+                request.phone(),
+                "[인증번호] " + code + " (5분 이내 입력)"
+        );
+
+        return code;
     }
 
     public void verifyCode(VerifyCodeRequest request) {
