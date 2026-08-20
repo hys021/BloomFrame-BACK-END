@@ -181,19 +181,24 @@ public class FirestoreAiDataStore implements AiDataStore {
 
     @Override
     public Optional<NewsletterDto> findPendingNewsletterByAlarm(String uid, String alarmId, Instant alarmAt) {
-        com.google.cloud.Timestamp alarmTimestamp = toTimestamp(alarmAt);
+        if (alarmId == null || alarmId.isBlank() || alarmAt == null) {
+            return Optional.empty();
+        }
         QuerySnapshot snapshot = await(
                 firestore.collection("users").document(uid).collection("newsletters")
                         .whereEqualTo("alarmId", alarmId)
-                        .whereEqualTo("status", "pending")
-                        .whereEqualTo("scheduledAt", alarmTimestamp)
-                        .limit(1)
                         .get());
-        if (snapshot.isEmpty()) {
-            return Optional.empty();
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            NewsletterDto newsletter = fromNewsletterDoc(uid, doc.getId(), doc.getData());
+            if (!"pending".equals(newsletter.status())) {
+                continue;
+            }
+            if (newsletter.scheduledAt() == null || !newsletter.scheduledAt().equals(alarmAt)) {
+                continue;
+            }
+            return Optional.of(newsletter);
         }
-        QueryDocumentSnapshot doc = snapshot.getDocuments().getFirst();
-        return Optional.of(fromNewsletterDoc(uid, doc.getId(), doc.getData()));
+        return Optional.empty();
     }
 
     private static void addToken(List<String> tokens, String token) {
