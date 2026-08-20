@@ -53,10 +53,20 @@ public class ReminderService {
     }
 
     public void createScheduledReminders() {
-        String currentTime = LocalTime.now()
+        ZoneId seoul = ZoneId.of("Asia/Seoul");
+        ZonedDateTime now = ZonedDateTime.now(seoul);
+
+        String currentTime = now.toLocalTime()
                 .format(DateTimeFormatter.ofPattern("HH:mm"));
 
+        var today = now.toLocalDate();
+
         medicationAlarmRepository.findAllByAlarmTime(currentTime)
+                .stream()
+                .filter(alarm -> alarm.getStartDate() == null
+                        || !today.isBefore(
+                        java.time.LocalDate.parse(alarm.getStartDate())
+                ))
                 .forEach(alarm ->
                         createReminder(
                                 alarm.getUserId(),
@@ -66,6 +76,11 @@ public class ReminderService {
                 );
 
         exerciseAlarmRepository.findAllByAlarmTime(currentTime)
+                .stream()
+                .filter(alarm -> alarm.getStartDate() == null
+                        || !today.isBefore(
+                        java.time.LocalDate.parse(alarm.getStartDate())
+                ))
                 .forEach(alarm ->
                         createReminder(
                                 alarm.getUserId(),
@@ -75,6 +90,11 @@ public class ReminderService {
                 );
 
         customAlarmRepository.findAllByAlarmTime(currentTime)
+                .stream()
+                .filter(alarm -> alarm.getStartDate() == null
+                        || !today.isBefore(
+                        java.time.LocalDate.parse(alarm.getStartDate())
+                ))
                 .forEach(alarm ->
                         createReminder(
                                 alarm.getUserId(),
